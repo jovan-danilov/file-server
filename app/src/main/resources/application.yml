@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: ${app.name}
+  main:
+    banner-mode: off
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization.indent_output: true
+
+server:
+  port: 8090
+
+# actuator endpoints
+management:
+  server:
+    port: 8091
+  endpoints:
+    web:
+      exposure:
+        include:
+          - info
+          - health
+          - env
+
+app:
+  name: File Server
+  root-directory: ./.root-dir

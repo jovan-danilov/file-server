@@ -1,0 +1,12 @@
+[alias]
+	co = checkout
+	st = status
+	br = branch
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[user]
+	name = jovan.danilov
+	email = jovan.danilov@gmail.com

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>com.id.json-rpc</groupId>
+    <artifactId>root</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>docker</artifactId>
+  <packaging>docker-build</packaging>
+  <name>docker</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>app</artifactId>
+      <version>${project.version}</version>
+      <classifier>repackaged</classifier>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <images>
+            <image>
+              <name>com.id/file-server:${project.version}</name>
+              <build>
+                <buildx>
+                  <builderName>file-server</builderName>
+                  <platforms>
+                    <platform>${docker.platforms}</platform>
+                  </platforms>
+                </buildx>
+                <assembly>
+                  <inline>
+                    <dependencySets>
+                      <dependencySet>
+                        <includes>
+                          <include>com.id.json-rpc:app:jar:repackaged</include>
+                        </includes>
+                        <outputDirectory>.</outputDirectory>
+                        <outputFileNameMapping>app.jar</outputFileNameMapping>
+                      </dependencySet>
+                    </dependencySets>
+                  </inline>
+                </assembly>
+                <dockerFileDir>${project.basedir}/src/main/docker</dockerFileDir>
+              </build>
+            </image>
+          </images>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
