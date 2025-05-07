@@ -10,8 +10,8 @@ public class JsonRpcConfig {
     @Bean
     public static AutoJsonRpcServiceImplExporter autoJsonRpcServiceImplExporter() {
         AutoJsonRpcServiceImplExporter result = new AutoJsonRpcServiceImplExporter();
-        //result.setHttpStatusCodeProvider();
-        //result.setErrorResolver();
+        result.setErrorResolver(new JsonRpcErrorResolver());//custom error handling
+//        result.setHttpStatusCodeProvider();
         return result;
     }
 }

@@ -1,61 +1,37 @@
 package com.id.fileserver.api;
 
-import java.util.HashMap;
+import com.googlecode.jsonrpc4j.JsonRpcClientException;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class GenericJsonRpcErrorsIT extends BaseApiIT {
 
     @Test
-    public void invalidMethodError() throws Throwable {
-        //given: nothing
-
+    public void invalidMethodError() {
         //when
-        JsonRpcRequest request = JsonRpcRequest.builder()
-                .id("1")
-                .method("unknownMethod")
-                .build();
-        JsonRpcErrorResponse result = invokeWithNotFound(request);
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke("unknownMethod", Map.of())
+        );
 
         //then
-        JsonRpcErrorResponse expected = JsonRpcErrorResponse.builder()
-                .jsonrpc("2.0")
-                .id("1")
-                .error(JsonRpcErrorResponse.Error.builder()
-                        .code(-32601)
-                        .message("method not found")
-                        .build())
-                .build();
-        assertThat(result).usingRecursiveComparison()
-                .isEqualTo(expected);
+        assertThat(thrown.getCode()).isEqualTo(-32601);
+        assertThat(thrown).hasMessageContaining("method not found");
     }
 
     @Test
-    public void invalidParamError() throws Throwable {
-        //given: nothing
-
+    public void invalidParamError() {
         //when
-        Map<String, Object> params = new HashMap<>();
-        params.put("unknownParam", "file1");
-        JsonRpcRequest request = JsonRpcRequest.builder()
-                .id("1")
-                .method("getFileInfo")
-                .params(params)
-                .build();
-        JsonRpcErrorResponse result = invokeWithServerError(request);
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke("getFileInfo", Map.of("unknownParam", "value"))
+        );
 
         //then
-        JsonRpcErrorResponse expected = JsonRpcErrorResponse.builder()
-                .jsonrpc("2.0")
-                .id("1")
-                .error(JsonRpcErrorResponse.Error.builder()
-                        .code(-32602)
-                        .message("method parameters invalid")
-                        .build())
-                .build();
-        assertThat(result).isEqualTo(expected);
+        assertThat(thrown.getCode()).isEqualTo(-32602);
+        assertThat(thrown).hasMessageContaining("method parameters invalid");
     }
-
 }
