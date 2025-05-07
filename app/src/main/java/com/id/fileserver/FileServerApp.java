@@ -2,14 +2,15 @@ package com.id.fileserver;
 
 import com.id.fileserver.config.EnvProperty;
 import com.id.fileserver.config.RootFileConfig;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Slf4j
 @SpringBootApplication

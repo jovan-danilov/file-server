@@ -54,7 +54,7 @@ public class FileOperationsApiIT extends BaseApiIT {
         );
 
         //then
-        assertThat(thrown.getCode()).isEqualTo(-32001);
+        assertThat(thrown.getCode()).isEqualTo(-32099);
         assertThat(thrown).hasMessageContaining("Access forbidden");
     }
 }
