@@ -4,16 +4,15 @@ package com.id.fileserver.endpoint;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import com.id.fileserver.model.FileInfo;
-import org.springframework.stereotype.Controller;
-
 import java.util.List;
+import org.springframework.stereotype.Controller;
 
 @Controller
 @JsonRpcService("/jsonrpc/v1/files")
 public interface FileApi {
 
     /**
-     * Get information about file/directory if it exists
+     * Get information about file/directory
      *
      * @param path relative path
      * @return file info
@@ -44,7 +43,7 @@ public interface FileApi {
      *
      * @param path relative path
      * @return file info of created directory
-     * @throws RuntimeException if error if error occurred
+     * @throws RuntimeException if error is occurred
      */
     FileInfo createDirectory(@JsonRpcParam(value = "path") String path);
 
@@ -77,7 +76,7 @@ public interface FileApi {
             @JsonRpcParam(value = "targetPath") String targetPath);
 
     /**
-     * Copy file/directory
+     * Copy file
      *
      * @param sourcePath relative source path
      * @param targetPath relative target path
@@ -85,6 +84,18 @@ public interface FileApi {
      * @throws RuntimeException if source doesn't exist or error occurred
      */
     FileInfo copyFile(
+            @JsonRpcParam(value = "sourcePath") String sourcePath,
+            @JsonRpcParam(value = "targetPath") String targetPath);
+
+    /**
+     * Copy directory
+     *
+     * @param sourcePath relative source path
+     * @param targetPath relative target path
+     * @return file info of target file
+     * @throws RuntimeException if source doesn't exist or error occurred
+     */
+    FileInfo copyDirectory(
             @JsonRpcParam(value = "sourcePath") String sourcePath,
             @JsonRpcParam(value = "targetPath") String targetPath);
 
@@ -102,7 +113,7 @@ public interface FileApi {
     /**
      * Read data to a file
      *
-     * @param path relative path
+     * @param path   relative path
      * @param offset offset in file in bytes
      * @param length length in bytes
      * @return data

@@ -1,6 +1,7 @@
 package com.id.fileserver.service;
 
 import com.id.fileserver.model.FileInfo;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -21,6 +22,8 @@ public interface FileService {
     FileInfo moveFile(String sourcePath, String targetPath) throws IOException;
 
     FileInfo copyFile(String sourcePath, String targetPath) throws IOException;
+
+    FileInfo copyDirectory(String sourcePath, String targetPath) throws IOException;
 
     boolean appendData(String path, String data) throws IOException;
 

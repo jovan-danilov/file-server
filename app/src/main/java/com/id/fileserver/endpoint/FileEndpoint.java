@@ -78,20 +78,30 @@ public class FileEndpoint implements FileApi {
         }
     }
 
-    public FileInfo moveFile(String sourcePath, String targetPath) {
-        log.info("moveFile, source: {}, target : {}", sourcePath, targetPath);
+    public FileInfo copyFile(String sourcePath, String targetPath) {
+        log.info("copyFile, source: {}, target : {}", sourcePath, targetPath);
         try {
-            return fileService.moveFile(sourcePath, targetPath);
+            return fileService.copyFile(sourcePath, targetPath);
         }
         catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public FileInfo copyFile(String sourcePath, String targetPath) {
-        log.info("copyFile, source: {}, target : {}", sourcePath, targetPath);
+    public FileInfo copyDirectory(String sourcePath, String targetPath) {
+        log.info("copyDirectory, source: {}, target : {}", sourcePath, targetPath);
         try {
-            return fileService.copyFile(sourcePath, targetPath);
+            return fileService.copyDirectory(sourcePath, targetPath);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public FileInfo moveFile(String sourcePath, String targetPath) {
+        log.info("moveFile, source: {}, target : {}", sourcePath, targetPath);
+        try {
+            return fileService.moveFile(sourcePath, targetPath);
         }
         catch (IOException e) {
             throw new RuntimeException(e);
