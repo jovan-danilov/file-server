@@ -141,4 +141,97 @@ public class FileOperationsApiIT extends BaseApiIT {
         assertThat(Files.exists(sourceFile)).isFalse();
     }
 
+    @Test
+    void appendToFile() throws Throwable {
+        //given
+        Path file1 = rootPath.resolve("file1");
+        Files.createFile(file1);
+
+        //when
+        getClient().invoke(
+                "appendToFile",
+                Map.of("path", "file1", "data", "line1\nline2\n"),
+                Void.class);
+
+        //then
+        String expected = FileUtils.readFileToString(file1.toFile(), StandardCharsets.UTF_8);
+        assertThat(expected).isEqualTo("line1\nline2\n");
+    }
+
+    @Test
+    void appendToFileArgError() throws Throwable {
+        //given
+        Path file1 = rootPath.resolve("file1");
+        Files.createFile(file1);
+
+        //when
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(
+                        "appendToFile",
+                        Map.of("path", "file1", "data", ""),
+                        Void.class));
+
+        //then
+        assertThat(thrown.getCode()).isEqualTo(-32098);
+        assertThat(thrown).hasMessageContaining("Invalid data");
+    }
+
+    @Test
+    void readFromFile() throws Throwable {
+        //given
+        Path file1 = rootPath.resolve("file1");
+        FileUtils.writeStringToFile(file1.toFile(), "line1\nline2\n", StandardCharsets.UTF_8);
+
+        //when
+        String result = getClient().invoke(
+                "readFromFile",
+                Map.of("path", "file1", "offset", 0, "length", 50),
+                String.class);
+
+        //then
+        assertThat(result).isEqualTo("line1\nline2\n");
+
+        //when
+        result = getClient().invoke(
+                "readFromFile",
+                Map.of("path", "file1", "offset", 2, "length", 3),
+                String.class);
+
+        //then
+        assertThat(result).isEqualTo("ne1");
+    }
+
+    @Test
+    void readFromFileArgError() throws Throwable {
+        //given
+        Path file1 = rootPath.resolve("file1");
+        Files.createFile(file1);
+
+        //when
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(
+                        "readFromFile",
+                        Map.of("path", "file1", "offset", -1, "length", 42),
+                        String.class)
+        );
+
+        //then
+        assertThat(thrown.getCode()).isEqualTo(-32098);
+        assertThat(thrown).hasMessageContaining("Invalid offset");
+
+        //when
+        thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(
+                        "readFromFile",
+                        Map.of("path", "file1", "offset", 0, "length", 0),
+                        String.class)
+        );
+
+        //then
+        assertThat(thrown.getCode()).isEqualTo(-32098);
+        assertThat(thrown).hasMessageContaining("Invalid length");
+    }
 }

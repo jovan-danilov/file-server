@@ -7,6 +7,8 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.NotDirectoryException;
@@ -136,6 +138,13 @@ public class FileServiceImpl implements FileService {
         Path path = resolvePath(relativePath);
         checkExists(relativePath, path);
         checkIsFile(relativePath, path);
+        if (data == null) {
+            return;
+        }
+        if (data.length() >= 10_000 || data.isEmpty()) {
+            throw new IllegalArgumentException("Invalid data");
+        }
+        FileUtils.writeStringToFile(path.toFile(), data, StandardCharsets.UTF_8, true);
     }
 
     @Override
@@ -144,7 +153,26 @@ public class FileServiceImpl implements FileService {
         checkExists(relativePath, path);
         checkIsFile(relativePath, path);
 
-        return null;
+        if (offset < 0) {
+            throw new IllegalArgumentException("Invalid offset");
+        }
+        if (length <= 0) {
+            throw new IllegalArgumentException("Invalid length");
+        }
+
+        try (RandomAccessFile file = new RandomAccessFile(path.toFile(), "r")) {
+            file.seek(offset);
+            byte[] dataBytes = new byte[length];
+            int bytesRead = file.read(dataBytes, 0, length);
+
+            if (bytesRead < 0) {
+                return new String(new byte[0], StandardCharsets.UTF_8); // EOF
+            }
+            if (bytesRead < length) {
+                length = bytesRead;
+            }
+            return new String(dataBytes, 0, length, StandardCharsets.UTF_8);
+        }
     }
 
     private FileInfo createFileInfo(Path path) throws IOException {
