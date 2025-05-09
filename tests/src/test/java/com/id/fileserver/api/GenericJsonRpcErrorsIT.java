@@ -1,8 +1,9 @@
 package com.id.fileserver.api;
 
 import com.googlecode.jsonrpc4j.JsonRpcClientException;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class GenericJsonRpcErrorsIT extends BaseApiIT {
 
     @Test
-    public void invalidMethodError() {
+    void invalidMethodError() {
         //when
         JsonRpcClientException thrown = assertThrows(
                 JsonRpcClientException.class,
@@ -23,7 +24,7 @@ public class GenericJsonRpcErrorsIT extends BaseApiIT {
     }
 
     @Test
-    public void invalidParamError() {
+    void invalidParamError() {
         //when
         JsonRpcClientException thrown = assertThrows(
                 JsonRpcClientException.class,

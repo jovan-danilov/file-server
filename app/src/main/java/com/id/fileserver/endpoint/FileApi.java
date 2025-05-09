@@ -4,8 +4,9 @@ package com.id.fileserver.endpoint;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import com.id.fileserver.model.FileInfo;
-import java.util.List;
 import org.springframework.stereotype.Controller;
+
+import java.util.List;
 
 @Controller
 @JsonRpcService("/jsonrpc/v1/files")
@@ -64,7 +65,7 @@ public interface FileApi {
     void deleteDirectory(@JsonRpcParam(value = "path") String path);
 
     /**
-     * Move file/directory
+     * Move file
      *
      * @param sourcePath relative source path
      * @param targetPath relative target path
@@ -72,6 +73,18 @@ public interface FileApi {
      * @throws RuntimeException if it source doesn't exist or error occurred
      */
     FileInfo moveFile(
+            @JsonRpcParam(value = "sourcePath") String sourcePath,
+            @JsonRpcParam(value = "targetPath") String targetPath);
+
+    /**
+     * Move directory
+     *
+     * @param sourcePath relative source path
+     * @param targetPath relative target path
+     * @return file info of target file
+     * @throws RuntimeException if it source doesn't exist or error occurred
+     */
+    FileInfo moveDirectory(
             @JsonRpcParam(value = "sourcePath") String sourcePath,
             @JsonRpcParam(value = "targetPath") String targetPath);
 

@@ -57,7 +57,10 @@ public class FileServiceImpl implements FileService {
         Path parentPath = resolvePath(path.getParent().toString());
 
         Path normalizedPath = Paths.get(relativePath).normalize();
-        checkExists(normalizedPath.getParent().toString(), parentPath);
+        Path parentDir = normalizedPath.getParent();
+        if (parentDir != null) {
+            checkExists(parentDir.toString(), parentPath);
+        }
         Files.createFile(path);
         return createFileInfo(path);
     }
@@ -70,33 +73,20 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public boolean deleteFile(String relativePath) throws IOException {
+    public void deleteFile(String relativePath) throws IOException {
         Path path = resolvePath(relativePath);
         checkExists(relativePath, path);
+        checkIsFile(relativePath, path);
         Files.delete(path);
-        return true;
     }
 
     @Override
-    public boolean deleteDirectory(String relativePath) throws IOException {
+    public void deleteDirectory(String relativePath) throws IOException {
         Path path = resolvePath(relativePath);
         checkExists(relativePath, path);
-        if (!Files.isDirectory(path)) {
-            throw new NotDirectoryException(relativePath);
-        }
+        checkIsDirectory(relativePath, path);
 
-        try (Stream<Path> walk = Files.walk(path)) {
-            // delete children first
-            walk.sorted((a, b) -> b.compareTo(a))
-                    .forEach(p -> {
-                        try {
-                            Files.delete(p);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-        }
-        return true;
+        FileUtils.deleteDirectory(path.toFile());
     }
 
     @Override
@@ -106,6 +96,17 @@ public class FileServiceImpl implements FileService {
         Path target = resolvePath(targetPath);
 
         Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        return createFileInfo(target);
+    }
+
+    @Override
+    public FileInfo moveDirectory(String sourcePath, String targetPath) throws IOException {
+        Path source = resolvePath(sourcePath);
+        checkExists(sourcePath, source);
+        checkIsDirectory(sourcePath, source);
+        Path target = resolvePath(targetPath);
+
+        FileUtils.moveDirectoryToDirectory(source.toFile(), target.toFile(), true);
         return createFileInfo(target);
     }
 
@@ -123,20 +124,27 @@ public class FileServiceImpl implements FileService {
     public FileInfo copyDirectory(String sourcePath, String targetPath) throws IOException {
         Path source = resolvePath(sourcePath);
         checkExists(sourcePath, source);
+        checkIsDirectory(sourcePath, source);
         Path target = resolvePath(targetPath);
 
-        FileUtils.copyDirectory(source.toFile(), target.toFile());
+        FileUtils.copyDirectoryToDirectory(source.toFile(), target.toFile());
         return createFileInfo(target);
     }
 
     @Override
-    public boolean appendData(String relativePath, String data) throws IOException {
-        throw new RuntimeException("not supported yet");
+    public void appendToFile(String relativePath, String data) throws IOException {
+        Path path = resolvePath(relativePath);
+        checkExists(relativePath, path);
+        checkIsFile(relativePath, path);
     }
 
     @Override
-    public String readData(String relativePath, int offset, int length) throws IOException {
-        throw new RuntimeException("not supported yet");
+    public String readFromFile(String relativePath, int offset, int length) throws IOException {
+        Path path = resolvePath(relativePath);
+        checkExists(relativePath, path);
+        checkIsFile(relativePath, path);
+
+        return null;
     }
 
     private FileInfo createFileInfo(Path path) throws IOException {
@@ -163,6 +171,18 @@ public class FileServiceImpl implements FileService {
     private void checkExists(String relativePath, Path resolvedPath) throws NoSuchFileException {
         if (!Files.exists(resolvedPath)) {
             throw new NoSuchFileException(relativePath);
+        }
+    }
+
+    private void checkIsFile(String relativePath, Path resolvedPath) throws IOException {
+        if (!Files.isRegularFile(resolvedPath)) {
+            throw new IOException(relativePath);
+        }
+    }
+
+    private void checkIsDirectory(String relativePath, Path resolvedPath) throws NotDirectoryException {
+        if (!Files.isDirectory(resolvedPath)) {
+            throw new NotDirectoryException(relativePath);
         }
     }
 }

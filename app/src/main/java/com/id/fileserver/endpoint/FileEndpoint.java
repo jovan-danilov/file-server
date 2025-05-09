@@ -4,11 +4,12 @@ package com.id.fileserver.endpoint;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import com.id.fileserver.model.FileInfo;
 import com.id.fileserver.service.FileService;
-import java.io.IOException;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+
+import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 @Controller
@@ -108,10 +109,20 @@ public class FileEndpoint implements FileApi {
         }
     }
 
-    public void appendToFile(String path, String data) {
-        log.info("appendToFile: {}, length: {} ", path, data.length());
+    public FileInfo moveDirectory(String sourcePath, String targetPath) {
+        log.info("moveDirectory, source: {}, target : {}", sourcePath, targetPath);
         try {
-            fileService.appendData(path, data);
+            return fileService.moveDirectory(sourcePath, targetPath);
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void appendToFile(String path, String data) {
+        log.info("appendToFile: {}, data: {} ", path, data.length());
+        try {
+            fileService.appendToFile(path, data);
         }
         catch (IOException e) {
             throw new RuntimeException(e);
@@ -119,9 +130,9 @@ public class FileEndpoint implements FileApi {
     }
 
     public String readFromFile(String path, int offset, int length) {
-        log.info("readFromFile: {}, length: {}", path, length);
+        log.info("readFromFile: {}, offset: {}, length: {}", path, offset,length);
         try {
-            return fileService.readData(path, offset, length);
+            return fileService.readFromFile(path, offset, length);
         }
         catch (IOException e) {
             throw new RuntimeException(e);

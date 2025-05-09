@@ -15,18 +15,20 @@ public interface FileService {
 
     FileInfo createDirectory(String path) throws IOException;
 
-    boolean deleteFile(String path) throws IOException;
+    void deleteFile(String path) throws IOException;
 
-    boolean deleteDirectory(String path) throws IOException;
+    void deleteDirectory(String path) throws IOException;
 
     FileInfo moveFile(String sourcePath, String targetPath) throws IOException;
+
+    FileInfo moveDirectory(String sourcePath, String targetPath) throws IOException;
 
     FileInfo copyFile(String sourcePath, String targetPath) throws IOException;
 
     FileInfo copyDirectory(String sourcePath, String targetPath) throws IOException;
 
-    boolean appendData(String path, String data) throws IOException;
+    void appendToFile(String path, String data) throws IOException;
 
-    String readData(String path, int offset, int length) throws IOException;
+    String readFromFile(String path, int offset, int length) throws IOException;
 
 }

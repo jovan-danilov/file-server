@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class FileOperationsApiIT extends BaseApiIT {
 
     @Test
-    public void getFileInfo() throws Throwable {
+    void getFileInfo() throws Throwable {
         //given
         Path file1 = rootPath.resolve("file1");
         FileUtils.writeStringToFile(file1.toFile(), "123", StandardCharsets.UTF_8);
@@ -35,7 +35,7 @@ public class FileOperationsApiIT extends BaseApiIT {
     }
 
     @Test
-    public void createFile() throws Throwable {
+    void createFile() throws Throwable {
         //given
         Path dir = rootPath.resolve("dir1/dir2");
         Files.createDirectories(dir);
@@ -54,7 +54,7 @@ public class FileOperationsApiIT extends BaseApiIT {
     }
 
     @Test
-    public void createFileNotExistingParentError() throws Throwable {
+    void createFileNotExistingParentError() throws Throwable {
         //when
         JsonRpcClientException thrown = assertThrows(
                 JsonRpcClientException.class,
@@ -66,10 +66,10 @@ public class FileOperationsApiIT extends BaseApiIT {
     }
 
     @Test
-    public void deleteFile() throws Throwable {
+    void deleteFile() throws Throwable {
         //given
-        Path dir1 = rootPath.resolve("dir1/dir2");
-        Files.createDirectories(dir1);
+        Path parentDir = rootPath.resolve("dir1/dir2");
+        Files.createDirectories(parentDir);
         Path file1 = rootPath.resolve("dir1/dir2/file1");
         Files.createFile(file1);
         Path file2 = rootPath.resolve("dir1/dir2/file2");
@@ -79,14 +79,14 @@ public class FileOperationsApiIT extends BaseApiIT {
         getClient().invoke("deleteFile", Map.of("path", "dir1/dir2/file1"), FileInfo.class);
 
         //then
-        Path parentDir = rootPath.resolve("dir1/dir2");
-        assertThat(Files.exists(parentDir) && Files.isDirectory(parentDir)).isTrue();
-        String[] contents = parentDir.toFile().list();
-        assertThat(contents).contains("file2");
+        assertThat(Files.exists(file1)).isFalse();
+
+        assertThat(Files.exists(parentDir)).isTrue();
+        assertThat(Files.exists(file2)).isTrue();
     }
 
     @Test
-    public void copyFile() throws Throwable {
+    void copyFile() throws Throwable {
         //given
         Path targetDir = rootPath.resolve("dir1/dir2");
         Files.createDirectories(targetDir);
@@ -114,7 +114,7 @@ public class FileOperationsApiIT extends BaseApiIT {
     }
 
     @Test
-    public void moveFile() throws Throwable {
+    void moveFile() throws Throwable {
         //given
         Path targetDir = rootPath.resolve("dir1/dir2");
         Files.createDirectories(targetDir);
