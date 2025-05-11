@@ -16,6 +16,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,6 +28,7 @@ import java.util.stream.Stream;
 public class FileServiceImpl implements FileService {
 
     private final Path rootPath;
+    private final ConcurrentMap<Path, ReentrantLock> fileLocks = new ConcurrentHashMap<>();
 
     @Override
     public FileInfo getFileInfo(String relativePath) throws IOException {
@@ -142,7 +146,14 @@ public class FileServiceImpl implements FileService {
         if (data.length() >= 10_000 || data.isEmpty()) {
             throw new IllegalArgumentException("Invalid data");
         }
-        FileUtils.writeStringToFile(path.toFile(), data, StandardCharsets.UTF_8, true);
+
+        ReentrantLock lock = fileLocks.computeIfAbsent(path, k -> new ReentrantLock());
+        lock.lock();
+        try {
+            FileUtils.writeStringToFile(path.toFile(), data, StandardCharsets.UTF_8, true);
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
