@@ -22,7 +22,7 @@ public class AccessErrorsIT extends BaseApiIT {
             "createFile", "createDirectory",
             "deleteFile", "deleteDirectory"
     })
-    void outOfRootDirectoryAccessError(String methodName) {
+    void pathOutOfRootDirectoryAccessError(String methodName) {
         //when
         JsonRpcClientException thrown = assertThrows(
                 JsonRpcClientException.class,
@@ -38,7 +38,7 @@ public class AccessErrorsIT extends BaseApiIT {
             "copyFile", "copyDirectory",
             "moveFile", "moveDirectory"
     })
-    void outOfRootDirectoryAccessError2(String methodName) {
+    void sourcePathOutOfRootDirectoryAccessError(String methodName) {
         //when
         JsonRpcClientException thrown = assertThrows(
                 JsonRpcClientException.class,
@@ -56,7 +56,7 @@ public class AccessErrorsIT extends BaseApiIT {
     @ValueSource(strings = {
             "copyFile", "moveFile"
     })
-    void outOfRootDirectoryAccessError3(String methodName) throws IOException {
+    void targetOutOfRootDirectoryAccessError1(String methodName) throws IOException {
         //given
         Path file = rootPath.resolve("source");
         Files.createFile(file);
@@ -76,9 +76,9 @@ public class AccessErrorsIT extends BaseApiIT {
 
     @ParameterizedTest(name = "{0}")
     @ValueSource(strings = {
-            "moveFile", "moveDirectory"
+            "copyDirectory", "moveDirectory"
     })
-    void outOfRootDirectoryAccessError4(String methodName) throws IOException {
+    void targetOutOfRootDirectoryAccessError2(String methodName) throws IOException {
         //given
         Path dir = rootPath.resolve("source");
         Files.createDirectories(dir);
@@ -132,26 +132,11 @@ public class AccessErrorsIT extends BaseApiIT {
     }
 
     @Test
-    void pathNotExistsError() {
+    void createFileNotExistingParentError() throws Throwable {
         //when
         JsonRpcClientException thrown = assertThrows(
                 JsonRpcClientException.class,
-                () -> getClient().invoke(
-                        "appendToFile",
-                        Map.of("path", "unknown", "data", "value"),
-                        FileInfo.class)
-        );
-
-        //then
-        checkFileNotExists(thrown);
-
-        //when
-        thrown = assertThrows(
-                JsonRpcClientException.class,
-                () -> getClient().invoke(
-                        "readFromFile",
-                        Map.of("path", "unknown", "offset", 8, "length", 42),
-                        FileInfo.class)
+                () -> getClient().invoke("createFile", Map.of("path", "unknown/file1"), FileInfo.class)
         );
 
         //then

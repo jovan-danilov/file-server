@@ -11,7 +11,6 @@ import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
-import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -38,9 +37,7 @@ public class FileServiceImpl implements FileService {
     public List<FileInfo> listDirectory(String relativePath) throws IOException {
         Path path = resolvePath(relativePath);
         checkExists(relativePath, path);
-        if (Files.exists(path) && !Files.isDirectory(path)) {
-            throw new NotDirectoryException(relativePath);
-        }
+        checkIsDirectory(relativePath, path);
 
         try (Stream<Path> paths = Files.list(path)) {
             return paths.map(p -> {
@@ -95,6 +92,7 @@ public class FileServiceImpl implements FileService {
     public FileInfo moveFile(String sourcePath, String targetPath) throws IOException {
         Path source = resolvePath(sourcePath);
         checkExists(sourcePath, source);
+        checkIsFile(sourcePath, source);
         Path target = resolvePath(targetPath);
 
         Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
@@ -139,7 +137,7 @@ public class FileServiceImpl implements FileService {
         checkExists(relativePath, path);
         checkIsFile(relativePath, path);
         if (data == null) {
-            return;
+            throw new IllegalArgumentException("Null param");
         }
         if (data.length() >= 10_000 || data.isEmpty()) {
             throw new IllegalArgumentException("Invalid data");
@@ -186,6 +184,9 @@ public class FileServiceImpl implements FileService {
     }
 
     private Path resolvePath(String relativePath) {
+        if (relativePath == null) {
+            throw new IllegalArgumentException("Null param");
+        }
         Path normalizedPath = Paths.get(relativePath).normalize();
         Path resolvedPath = rootPath.resolve(normalizedPath);
 
@@ -204,13 +205,13 @@ public class FileServiceImpl implements FileService {
 
     private void checkIsFile(String relativePath, Path resolvedPath) throws IOException {
         if (!Files.isRegularFile(resolvedPath)) {
-            throw new IOException(relativePath);
+            throw new IOException("Not a file: " + relativePath);
         }
     }
 
-    private void checkIsDirectory(String relativePath, Path resolvedPath) throws NotDirectoryException {
+    private void checkIsDirectory(String relativePath, Path resolvedPath) throws IOException {
         if (!Files.isDirectory(resolvedPath)) {
-            throw new NotDirectoryException(relativePath);
+            throw new IOException("Not a directory: " + relativePath);
         }
     }
 }

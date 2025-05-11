@@ -1,13 +1,19 @@
 package com.id.fileserver.api;
 
+import com.googlecode.jsonrpc4j.JsonRpcClientException;
 import com.id.fileserver.model.FileInfo;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DirectoryOperationsApiIT extends BaseApiIT {
 
@@ -159,6 +165,42 @@ public class DirectoryOperationsApiIT extends BaseApiIT {
         assertThat(Files.exists(dir11)).isTrue();
         String[] contents = dir11.toFile().list();
         assertThat(contents).isEmpty();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {
+            "listDirectory", "deleteDirectory"
+    })
+    void notDirectoryError(String methodName) throws IOException {
+        //when
+        Path file = rootPath.resolve("file");
+        Files.createFile(file);
+
+        //when
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(methodName, Map.of("path", "file"), FileInfo.class)
+        );
+
+        //then
+        checkIsNotDir(thrown);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {
+            "listDirectory", "createDirectory", "deleteDirectory"
+    })
+    void nullParam(String methodName) {
+        //when
+        Map<String, String> params = new HashMap<>();
+        params.put("path", null);
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(methodName, params, FileInfo.class)
+        );
+
+        //then
+        checkParamIsNull(thrown);
     }
 
 }

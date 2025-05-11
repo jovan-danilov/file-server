@@ -4,10 +4,14 @@ import com.googlecode.jsonrpc4j.JsonRpcClientException;
 import com.id.fileserver.model.FileInfo;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,18 +55,6 @@ public class FileOperationsApiIT extends BaseApiIT {
                 .isDirectory(false)
                 .build();
         assertThat(result).isEqualTo(expected);
-    }
-
-    @Test
-    void createFileNotExistingParentError() throws Throwable {
-        //when
-        JsonRpcClientException thrown = assertThrows(
-                JsonRpcClientException.class,
-                () -> getClient().invoke("createFile", Map.of("path", "unknown/file1"), FileInfo.class)
-        );
-
-        //then
-        checkFileNotExists(thrown);
     }
 
     @Test
@@ -234,4 +226,38 @@ public class FileOperationsApiIT extends BaseApiIT {
         assertThat(thrown.getCode()).isEqualTo(-32098);
         assertThat(thrown).hasMessageContaining("Invalid length");
     }
+
+    @Test
+    void notFileError() throws IOException {
+        //given
+        Path dir = rootPath.resolve("dir");
+        Files.createDirectories(dir);
+
+        //when
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke("deleteFile", Map.of("path", "dir"), FileInfo.class)
+        );
+
+        //then
+        checkIsNotFile(thrown);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {
+            "getFileInfo", "createFile", "deleteFile"
+    })
+    void nullParam(String methodName) {
+        //when
+        Map<String, String> params = new HashMap<>();
+        params.put("path", null);
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(methodName, params, FileInfo.class)
+        );
+
+        //then
+        checkParamIsNull(thrown);
+    }
+
 }

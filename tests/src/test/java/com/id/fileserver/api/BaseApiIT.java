@@ -11,7 +11,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,8 +41,13 @@ public abstract class BaseApiIT {
         return "http://localhost:" + port + API_PATH;
     }
 
-    JsonRpcRestClient getClient() throws MalformedURLException {
-        return new JsonRpcRestClient(new URL(getUrl()));
+    JsonRpcRestClient getClient() throws MalformedURLException, URISyntaxException {
+        return new JsonRpcRestClient(new URI(getUrl()).toURL());
+    }
+
+    void checkParamIsNull(JsonRpcClientException exception) {
+        assertThat(exception.getCode()).isEqualTo(-32098);
+        assertThat(exception).hasMessageContaining("Null param");
     }
 
     void checkFileNotExists(JsonRpcClientException exception) {
@@ -49,4 +55,13 @@ public abstract class BaseApiIT {
         assertThat(exception).hasMessageContaining("NoSuchFileException: unknown");
     }
 
+    void checkIsNotFile(JsonRpcClientException exception) {
+        assertThat(exception.getCode()).isEqualTo(-32001);
+        assertThat(exception).hasMessageContaining("Not a file");
+    }
+
+    void checkIsNotDir(JsonRpcClientException exception) {
+        assertThat(exception.getCode()).isEqualTo(-32001);
+        assertThat(exception).hasMessageContaining("Not a directory");
+    }
 }
