@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -48,8 +49,9 @@ public class FileOperationsApiIT extends BaseApiIT {
         FileInfo result = getClient().invoke("createFile", Map.of("path", "dir1/dir2/file1"), FileInfo.class);
 
         //then
+        var path = String.join(File.separator, "dir1", "dir2", "file1");
         FileInfo expected = FileInfo.builder()
-                .path("dir1\\dir2\\file1")
+                .path(path)
                 .name("file1")
                 .size(0)
                 .isDirectory(false)
@@ -92,8 +94,9 @@ public class FileOperationsApiIT extends BaseApiIT {
                 FileInfo.class);
 
         //then
+        var path = String.join(File.separator, "dir1", "dir2", "sourceFile");
         FileInfo expected = FileInfo.builder()
-                .path("dir1\\dir2\\sourceFile")
+                .path(path)
                 .name("sourceFile")
                 .size(0)
                 .isDirectory(false)
@@ -120,8 +123,9 @@ public class FileOperationsApiIT extends BaseApiIT {
                 FileInfo.class);
 
         //then
+        var path = String.join(File.separator, "dir1", "dir2", "sourceFile");
         FileInfo expected = FileInfo.builder()
-                .path("dir1\\dir2\\sourceFile")
+                .path(path)
                 .name("sourceFile")
                 .size(0)
                 .isDirectory(false)

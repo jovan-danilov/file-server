@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,9 +28,10 @@ public class DirectoryOperationsApiIT extends BaseApiIT {
         FileInfo result = getClient().invoke("getFileInfo", Map.of("path", "dir1/dir2"), FileInfo.class);
 
         //then
+        var path = String.join(File.separator, "dir1", "dir2");
         FileInfo expected = FileInfo.builder()
                 .name("dir2")
-                .path("dir1\\dir2")
+                .path(path)
                 .size(0)
                 .isDirectory(true)
                 .build();
@@ -57,15 +59,17 @@ public class DirectoryOperationsApiIT extends BaseApiIT {
         FileInfo[] result = getClient().invoke("listDirectory", Map.of("path", "dir1"), FileInfo[].class);
 
         //then
+        var dirPath = String.join(File.separator, "dir1", "dir2");
         FileInfo expectedDir = FileInfo.builder()
                 .name("dir2")
-                .path("dir1\\dir2")
+                .path(dirPath)
                 .size(0)
                 .isDirectory(true)
                 .build();
+        var filePath = String.join(File.separator, "dir1", "file1");
         FileInfo expectedFile = FileInfo.builder()
                 .name("file1")
-                .path("dir1\\file1")
+                .path(filePath)
                 .size(0)
                 .isDirectory(false)
                 .build();
@@ -78,8 +82,9 @@ public class DirectoryOperationsApiIT extends BaseApiIT {
         FileInfo result = getClient().invoke("createDirectory", Map.of("path", "dir1/dir2/dir3"), FileInfo.class);
 
         //then
+        var path = String.join(File.separator, "dir1", "dir2", "dir3");
         FileInfo expected = FileInfo.builder()
-                .path("dir1\\dir2\\dir3")
+                .path(path)
                 .name("dir3")
                 .size(0)
                 .isDirectory(true)

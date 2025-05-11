@@ -189,7 +189,7 @@ public class FileServiceImpl implements FileService {
         return FileInfo.builder()
                 .name(path.getFileName().toString())
                 .path(rootPath.relativize(path).toString())
-                .size(attrs.size())
+                .size(attrs.isDirectory() ? 0 : attrs.size())
                 .isDirectory(attrs.isDirectory())
                 .build();
     }
