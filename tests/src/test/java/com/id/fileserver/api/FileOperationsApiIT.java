@@ -266,4 +266,21 @@ public class FileOperationsApiIT extends BaseApiIT {
         checkParamIsNull(thrown);
     }
 
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {
+            "getFileInfo", "createFile", "deleteFile"
+    })
+    void paramLength(String methodName) {
+        //when
+        Map<String, String> params = new HashMap<>();
+        params.put("path", "a".repeat(1_001));
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(methodName, params, FileInfo.class)
+        );
+
+        //then
+        checkParamLength(thrown);
+    }
+
 }

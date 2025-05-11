@@ -198,6 +198,9 @@ public class FileServiceImpl implements FileService {
         if (relativePath == null) {
             throw new IllegalArgumentException("Null param");
         }
+        if (relativePath.length() > 1_000) {
+            throw new IllegalArgumentException("Invalid param length");
+        }
         Path normalizedPath = Paths.get(relativePath).normalize();
         Path resolvedPath = rootPath.resolve(normalizedPath);
 

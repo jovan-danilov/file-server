@@ -50,6 +50,11 @@ public abstract class BaseApiIT {
         assertThat(exception).hasMessageContaining("Null param");
     }
 
+    void checkParamLength(JsonRpcClientException exception) {
+        assertThat(exception.getCode()).isEqualTo(-32098);
+        assertThat(exception).hasMessageContaining("Invalid param length");
+    }
+
     void checkFileNotExists(JsonRpcClientException exception) {
         assertThat(exception.getCode()).isEqualTo(-32001);
         assertThat(exception).hasMessageContaining("NoSuchFileException: unknown");
