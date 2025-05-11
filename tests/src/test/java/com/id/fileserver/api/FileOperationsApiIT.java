@@ -140,14 +140,15 @@ public class FileOperationsApiIT extends BaseApiIT {
         Files.createFile(file1);
 
         //when
+        String data = "line1" + System.lineSeparator() + "line2" + System.lineSeparator();
         getClient().invoke(
                 "appendToFile",
-                Map.of("path", "file1", "data", "line1\nline2\n"),
+                Map.of("path", "file1", "data", data),
                 Void.class);
 
         //then
         String expected = FileUtils.readFileToString(file1.toFile(), StandardCharsets.UTF_8);
-        assertThat(expected).isEqualTo("line1\nline2\n");
+        assertThat(expected).isEqualTo(data);
     }
 
     @Test
@@ -173,7 +174,8 @@ public class FileOperationsApiIT extends BaseApiIT {
     void readFromFile() throws Throwable {
         //given
         Path file1 = rootPath.resolve("file1");
-        FileUtils.writeStringToFile(file1.toFile(), "line1\nline2\n", StandardCharsets.UTF_8);
+        String data = "line1" + System.lineSeparator() + "line2" + System.lineSeparator();
+        FileUtils.writeStringToFile(file1.toFile(), data, StandardCharsets.UTF_8);
 
         //when
         String result = getClient().invoke(
@@ -182,7 +184,7 @@ public class FileOperationsApiIT extends BaseApiIT {
                 String.class);
 
         //then
-        assertThat(result).isEqualTo("line1\nline2\n");
+        assertThat(result).isEqualTo(data);
 
         //when
         result = getClient().invoke(
