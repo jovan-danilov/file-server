@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -81,6 +82,7 @@ public class FileServiceImpl implements FileService {
         checkExists(relativePath, path);
         checkIsFile(relativePath, path);
         Files.delete(path);
+        fileLocks.remove(path);
     }
 
     @Override
@@ -89,7 +91,12 @@ public class FileServiceImpl implements FileService {
         checkExists(relativePath, path);
         checkIsDirectory(relativePath, path);
 
-        FileUtils.deleteDirectory(path.toFile());
+        List<Path> children = collectFilesInDir(path);
+        try {
+            FileUtils.deleteDirectory(path.toFile());
+        } finally {
+            removeLocks(children);
+        }
     }
 
     @Override
@@ -100,6 +107,7 @@ public class FileServiceImpl implements FileService {
         Path target = resolvePath(targetPath);
 
         Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        fileLocks.remove(source);
         return createFileInfo(target);
     }
 
@@ -110,11 +118,16 @@ public class FileServiceImpl implements FileService {
         checkIsDirectory(sourcePath, source);
         Path target = resolvePath(targetPath);
 
-        FileUtils.moveDirectoryToDirectory(source.toFile(), target.toFile(), true);
+        List<Path> children = collectFilesInDir(source);
+        try {
+            FileUtils.moveDirectoryToDirectory(source.toFile(), target.toFile(), true);
+        } finally {
+            removeLocks(children);
+        }
         return createFileInfo(target);
     }
 
-    @Override
+   @Override
     public FileInfo copyFile(String sourcePath, String targetPath) throws IOException {
         Path source = resolvePath(sourcePath);
         checkExists(sourcePath, source);
@@ -201,8 +214,8 @@ public class FileServiceImpl implements FileService {
         if (relativePath.length() > 1_000) {
             throw new IllegalArgumentException("Invalid param length");
         }
-        Path normalizedPath = Paths.get(relativePath).normalize();
-        Path resolvedPath = rootPath.resolve(normalizedPath);
+        Path path = Paths.get(relativePath);
+        Path resolvedPath = rootPath.resolve(path).normalize();
 
         //path must be within the root dir
         if (!resolvedPath.toAbsolutePath().startsWith(rootPath.toAbsolutePath())) {
@@ -227,5 +240,26 @@ public class FileServiceImpl implements FileService {
         if (!Files.isDirectory(resolvedPath)) {
             throw new IOException("Not a directory: " + relativePath);
         }
+    }
+
+    private void removeLocks(List<Path> filePaths) {
+        for (Path path : filePaths) {
+            if (!Files.isRegularFile(path)) {// doesn't exist
+                fileLocks.remove(path);
+            }
+        }
+    }
+
+    private List<Path> collectFilesInDir(Path source) throws IOException {
+        List<Path> result = new ArrayList<>();
+        try (Stream<Path> stream = Files.walk(source)) {
+            stream.forEach(filePath -> {
+                        if (Files.isRegularFile(filePath)) {
+                            result.add(filePath);
+                        }
+                    }
+            );
+        }
+        return result;
     }
 }

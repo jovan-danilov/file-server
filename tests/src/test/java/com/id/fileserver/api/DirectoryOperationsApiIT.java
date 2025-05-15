@@ -97,13 +97,17 @@ public class DirectoryOperationsApiIT extends BaseApiIT {
         //given
         Path dir1 = rootPath.resolve("dir1/dir2/dir3");
         Files.createDirectories(dir1);
+        Path sourceFile = rootPath.resolve("dir1/dir2/dir3/sourceFile");
+        Files.createFile(sourceFile);
 
         //when
         getClient().invoke("deleteDirectory", Map.of("path", "dir1/dir2"), FileInfo.class);
 
         //then
+        assertThat(Files.exists(sourceFile)).isFalse();
+
         Path parentDir = rootPath.resolve("dir1");
-        assertThat(Files.exists(parentDir) && Files.isDirectory(parentDir)).isTrue();
+        assertThat(Files.exists(parentDir)).isTrue();
         String[] contents = parentDir.toFile().list();
         assertThat(contents).isEmpty();
     }

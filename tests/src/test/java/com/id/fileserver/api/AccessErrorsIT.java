@@ -22,11 +22,37 @@ public class AccessErrorsIT extends BaseApiIT {
             "createFile", "createDirectory",
             "deleteFile", "deleteDirectory"
     })
-    void pathOutOfRootDirectoryAccessError(String methodName) {
+    void pathOutOfRootDirectoryAccessErrorGivenRootPath(String methodName) {
         //when
         JsonRpcClientException thrown = assertThrows(
                 JsonRpcClientException.class,
                 () -> getClient().invoke(methodName, Map.of("path", "/path"), FileInfo.class)
+        );
+
+        //then
+        checkAccessForbidden(thrown);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {
+            "getFileInfo", "listDirectory",
+            "createFile", "createDirectory",
+            "deleteFile", "deleteDirectory"
+    })
+    void pathOutOfRootDirectoryAccessErrorGivenPlaceholders(String methodName) {
+        //when
+        JsonRpcClientException thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(methodName, Map.of("path", "../../../"), FileInfo.class)
+        );
+
+        //then
+        checkAccessForbidden(thrown);
+
+        //and
+        thrown = assertThrows(
+                JsonRpcClientException.class,
+                () -> getClient().invoke(methodName, Map.of("path", "../.."), FileInfo.class)
         );
 
         //then
