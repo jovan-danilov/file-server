@@ -4,6 +4,7 @@ import com.id.fileserver.model.FileInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -15,10 +16,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 public class FileServiceImpl implements FileService {
 
     private final Path rootPath;
-    private final ConcurrentMap<Path, ReentrantLock> fileLocks = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Path, ReentrantLock> fileLocks;
 
     @Override
     public FileInfo getFileInfo(String relativePath) throws IOException {
@@ -91,12 +91,7 @@ public class FileServiceImpl implements FileService {
         checkExists(relativePath, path);
         checkIsDirectory(relativePath, path);
 
-        List<Path> children = collectFilesInDir(path);
-        try {
-            FileUtils.deleteDirectory(path.toFile());
-        } finally {
-            removeLocks(children);
-        }
+        FileUtils.deleteDirectory(path.toFile());
     }
 
     @Override
@@ -118,16 +113,11 @@ public class FileServiceImpl implements FileService {
         checkIsDirectory(sourcePath, source);
         Path target = resolvePath(targetPath);
 
-        List<Path> children = collectFilesInDir(source);
-        try {
-            FileUtils.moveDirectoryToDirectory(source.toFile(), target.toFile(), true);
-        } finally {
-            removeLocks(children);
-        }
+        FileUtils.moveDirectoryToDirectory(source.toFile(), target.toFile(), true);
         return createFileInfo(target);
     }
 
-   @Override
+    @Override
     public FileInfo copyFile(String sourcePath, String targetPath) throws IOException {
         Path source = resolvePath(sourcePath);
         checkExists(sourcePath, source);
@@ -197,6 +187,28 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    @Scheduled(initialDelayString = "5", fixedDelayString = "${app.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
+    public void onScheduled() {
+        cleanup();
+    }
+
+    private void cleanup() {
+        log.info("Cleaning up ...");
+        for (Path filePath : fileLocks.keySet()) {
+            ReentrantLock lock = fileLocks.get(filePath);
+            if (lock != null) {
+                lock.lock();
+                try {
+                    if (!Files.isRegularFile(filePath)) {// doesn't exist
+                        fileLocks.remove(filePath);
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            }
+        }
+    }
+
     private FileInfo createFileInfo(Path path) throws IOException {
         BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
         return FileInfo.builder()
@@ -242,24 +254,4 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    private void removeLocks(List<Path> filePaths) {
-        for (Path path : filePaths) {
-            if (!Files.isRegularFile(path)) {// doesn't exist
-                fileLocks.remove(path);
-            }
-        }
-    }
-
-    private List<Path> collectFilesInDir(Path source) throws IOException {
-        List<Path> result = new ArrayList<>();
-        try (Stream<Path> stream = Files.walk(source)) {
-            stream.forEach(filePath -> {
-                        if (Files.isRegularFile(filePath)) {
-                            result.add(filePath);
-                        }
-                    }
-            );
-        }
-        return result;
-    }
 }

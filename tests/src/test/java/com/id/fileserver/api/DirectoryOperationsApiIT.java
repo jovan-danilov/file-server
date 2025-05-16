@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class DirectoryOperationsApiIT extends BaseApiIT {
 
     @Test
-    void getFileInfo() throws Throwable {
+    void getDirInfo() throws Throwable {
         //given
         Path dir1 = rootPath.resolve("dir1/dir2");
         Files.createDirectories(dir1);
@@ -32,6 +32,21 @@ public class DirectoryOperationsApiIT extends BaseApiIT {
         FileInfo expected = FileInfo.builder()
                 .name("dir2")
                 .path(path)
+                .size(0)
+                .isDirectory(true)
+                .build();
+        assertThat(result).isEqualTo(expected);
+    }
+
+    @Test
+    void getRootDirInfo() throws Throwable {
+        //when
+        FileInfo result = getClient().invoke("getFileInfo", Map.of("path", "."), FileInfo.class);
+
+        //then
+        FileInfo expected = FileInfo.builder()
+                .path("")
+                .name(".root-dir")
                 .size(0)
                 .isDirectory(true)
                 .build();

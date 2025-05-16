@@ -25,3 +25,4 @@ management:
 app:
   name: File Server
   root-directory: ./.root-dir
+  cleanup-interval: 15
