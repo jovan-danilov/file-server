@@ -29,7 +29,7 @@
         <configuration>
           <images>
             <image>
-              <name>com.id/file-server:${project.version}</name>
+              <name>file-server:${project.version}</name>
               <build>
                 <buildx>
                   <builderName>file-server</builderName>

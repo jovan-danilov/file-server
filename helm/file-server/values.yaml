@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  registryUrl: localhost:5000
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8090
+  nodePort: 30090
+

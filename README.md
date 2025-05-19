@@ -27,8 +27,21 @@ In console run:
 Run `FileServerApp.java`
 
 ## run in docker
-`docker run --name file-server -p 8090:8090 com.id/file-server:0.0.1-SNAPSHOT`
+`docker run --name file-server -p 8090:8090 file-server:0.0.1-SNAPSHOT`
+
+## run in k8s
+1. tag docker image 
+`docker tag file-server:0.0.1-SNAPSHOT <your_registry_url>/file-server:0.0.1-SNAPSHOT`
+
+2. push docker image to registry
+`docker push <your_registry_url>/file-server:0.0.1-SNAPSHOT`
+
+3. run
+- `cd helm/file-server`
+- In values.yaml set "image.registryUrl" to your image registry
+- `helm install fs .`
+
+Default exposed URL: `<k8s_host>:30090/jsonrpc/v1/files`
 
 ## run integration tests locally
 `mvnw -Pintegration-tests clean install` 
-
